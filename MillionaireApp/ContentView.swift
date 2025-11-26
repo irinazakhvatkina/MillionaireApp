@@ -1,17 +1,19 @@
 import SwiftUI
 
 struct HomeView: View {
-    
+    @State private var showRules = false
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
 
             // MARK: - Rulse
-            Button(action: { print("Rules") }) {
+            Button(action: { showRules = true}) {
                 Image("help")
                     .resizable()
                     .frame(width: 32, height: 32)
                     .foregroundColor(.blue)
-                    .padding()
+                    .padding(.top, 50)
+                    .padding(.trailing, 20)
             }
 
             // MARK: - Center Content
@@ -24,6 +26,7 @@ struct HomeView: View {
                 Text("Who Wants\n to Be a Millionaire?")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .padding(.top, -80)
 
@@ -40,6 +43,15 @@ struct HomeView: View {
 
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color.gray)
+        .ignoresSafeArea()
+        
+        // MARK: - Sheet for Rules
+        .sheet(isPresented: $showRules) {
+            RulesView()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
