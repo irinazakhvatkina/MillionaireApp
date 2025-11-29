@@ -1,7 +1,10 @@
 # Xcode
 DerivedData/
 build/
+xcuserdata/
 *.xcuserstate
+
+# Xcode workspace
 *.xcworkspace/xcuserdata/
 
 # SwiftPM
@@ -12,7 +15,18 @@ Packages/
 Pods/
 Podfile.lock
 
+# Carthage
+Carthage/Build
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
 # macOS
 .DS_Store
 
-
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
