@@ -28,16 +28,15 @@ struct HomeView: View {
                     .padding(.top, -80)
 
 
-                // FIXME: Custom button
-                Button("New Game") { }
-                    .font(.title2)
-                    .padding()
-                    .frame(maxWidth: 240)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .padding(.top, 150)
-
+                //  MARK: - Custom button
+                CustomButton(
+                    title: "New game",
+                    color: .yellowButton,
+                    sizeButton: CGSize(width: 310, height: 60),
+                    action: {
+                        print("New game")
+                    }
+                ).padding(.top, 140)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
