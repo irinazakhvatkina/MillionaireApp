@@ -8,10 +8,7 @@ struct HomeView: View {
 
             // MARK: - Rulse
             Button(action: { showRules = true}) {
-                Image("help")
-                    .resizable()
-                    .frame(width: 32, height: 32)
-                    .foregroundColor(.blue)
+                GameIcon(name: "help")
                     .padding(.top, 50)
                     .padding(.trailing, 20)
             }
