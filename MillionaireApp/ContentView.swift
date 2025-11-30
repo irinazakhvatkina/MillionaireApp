@@ -5,6 +5,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
+            GradientBackground()
 
             // MARK: - Rulse
             Button(action: { showRules = true}) {
