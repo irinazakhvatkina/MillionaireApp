@@ -17,7 +17,7 @@ struct CustomButton: View {
                 .clipShape(CustomShape())
         } .overlay(CustomShape.init().stroke(Color.white, lineWidth: 3))
           .frame(minWidth: sizeButton.width,maxWidth: sizeButton.width, minHeight: sizeButton.height, maxHeight: sizeButton.height)
-            .padding()
+            .padding(0)
     }
 }
 
