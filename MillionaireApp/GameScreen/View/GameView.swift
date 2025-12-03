@@ -4,6 +4,7 @@ struct GameView: View {
 
     @State private var viewModel = QuestionModel()
     @State private var selectedAnswer: Int? = nil
+    @State private var goToLevel = false
     
     @State private var isPressed1 = false
     @State private var isPressed2 = false
@@ -55,61 +56,7 @@ struct GameView: View {
                             .scaledToFit()
                             .frame(width: 90)
                     }
-                } .padding(.bottom, 70)
-                
-                VStack(spacing: 40) {
-                    if viewModel.showResult {
-                        Text("Game Over!")
-                            .font(.largeTitle)
-                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
-                            .padding()
-                    } else {
-                        if !viewModel.questions.isEmpty {
-                            
-                            let question = viewModel.questions[viewModel.currentIndex]
-                            
-                            Text(question.question)
-                                .foregroundStyle(.white)
-                                .bold()
-                                .font(.headline)
-                                .padding(40)
-                            ForEach(0..<question.answers.count, id: \.self) { index in
-                                CustomButton(title: question.answers[index], color: selectedAnswer == index ? (index == question.correct ? .greenButton : .redButton) : .blueButton, sizeButton: CGSize(width: 340, height: 40), action: {
-                                    selectedAnswer = index
-                                })
-                               }
-                        }
-                    }
-                }
-                .padding(40)
-                
-                HStack (spacing: 30){
-                    Button(action: {
-                        print("50:50")
-                    }) {
-                        Image(.button50)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                    }
-                    Button(action: {
-                        print("Audience")
-                    }) {
-                        Image(.buttonAudience)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                    }
-                    Button(action: {
-                        print("call")
-                    }) {
-                        Image(.buttonCall)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                    }
-
-                    Button(action: { print("call") }) {
+                    Button(action: { print("Call") }) {
                         Image("buttonCall")
                             .resizable()
                             .scaledToFit()
@@ -117,6 +64,33 @@ struct GameView: View {
                     }
                 }
                 .padding(.bottom, 30)
+                
+                // MARK: - Questions from ViewModel
+                if viewModel.showResult {
+                    VStack {
+                        Text("Game Over!")
+                            .font(.largeTitle)
+                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
+                            .padding()
+                    }
+                } else if !viewModel.questions.isEmpty {
+                    let question = viewModel.questions[viewModel.currentIndex]
+                    VStack(spacing: 20) {
+                        Text(question.question)
+                            .foregroundStyle(.white)
+                            .bold()
+                            .font(.headline)
+                            .padding(40)
+                        ForEach(0..<question.answers.count, id: \.self) { index in
+                            CustomButton(title: question.answers[index],
+                                         color: selectedAnswer == index ? (index == question.correct ? .greenButton : .redButton) : .blueButton,
+                                         sizeButton: CGSize(width: 340, height: 40)) {
+                                selectedAnswer = index
+                            }
+                        }
+                    }
+                    .padding(40)
+                }
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -129,31 +103,35 @@ struct GameView: View {
                         .frame(width: 25, height: 20)
                 }
             }
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 5) {
-                        Text("QUESTION #1")
-                            .foregroundColor(.white)
-                            .opacity(0.7)
-                            .font(Fonts.small)
-                        Text("$500")
-                            .foregroundColor(.white)
-                            .font(Fonts.body)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { print("List of Answers") }) {
-                        Image("level")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 25)
-                    }
+            
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 5) {
+                    Text("QUESTION #1")
+                        .foregroundColor(.white)
+                        .opacity(0.7)
+                        .font(Fonts.small)
+                    Text("$500")
+                        .foregroundColor(.white)
+                        .font(Fonts.body)
                 }
             }
-            .toolbarBackground(Color.clear, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { goToLevel = true }) {
+                    Image("level")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 25)
+                }
+            }
+        }
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .navigationDestination(isPresented: $goToLevel) {
+            ResultView()
         }
     }
+}
 
 #Preview {
     NavigationStack {

@@ -43,7 +43,8 @@ struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .background(Color.gray)
+            .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
             .ignoresSafeArea()
             
             // MARK: - Sheet for Rules

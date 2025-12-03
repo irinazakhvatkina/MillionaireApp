@@ -10,16 +10,17 @@ struct ResultView: View {
 
     var onWithdraw: ((String) -> Void)?
 
+    @State private var goNext = false
+
     var currentPrize: String {
         rows.first?.1 ?? "$0"
     }
 
     var body: some View {
         ZStack {
-            
             GradientBackground()
-            
-        // MARK: - Table of levels
+
+            // MARK: - Table of levels
             VStack(spacing: 0) {
                 ForEach(rows, id: \.0) { row in
                     MoneyButton(
@@ -32,8 +33,8 @@ struct ResultView: View {
                     }
                 }
             }
-            
-        // MARK: - Logo
+
+            // MARK: - Logo
             VStack {
                 Image("logo")
                     .resizable()
@@ -43,9 +44,8 @@ struct ResultView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            
-        // MARK: - Withdraw Button
+
+            // MARK: - Withdraw Button
             VStack {
                 HStack {
                     Button {
@@ -62,8 +62,18 @@ struct ResultView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .navigationBarBackButtonHidden(true) 
+        .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                goNext = true
+            }
+        }
+        .navigationDestination(isPresented: $goNext) {
+            GameoverView() 
+        }
     }
-    
+
     // MARK: - Withdraw Logic
     private func withdrawMoney() {
         print("Player withdrew: \(currentPrize)")
@@ -72,5 +82,7 @@ struct ResultView: View {
 }
 
 #Preview {
-    ResultView()
+    NavigationStack {
+        ResultView()
+    }
 }
