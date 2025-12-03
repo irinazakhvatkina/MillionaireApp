@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GameView: View {
-    
+    @State private var goToLevel = false
     @State private var isPressed1 = false
     @State private var isPressed2 = false
     @State private var isPressed3 = false
@@ -52,7 +52,7 @@ struct GameView: View {
                             .scaledToFit()
                             .frame(width: 90)
                     }
-                    Button(action: { print("call") }) {
+                    Button(action: { print("Call") }) {
                         Image("buttonCall")
                             .resizable()
                             .scaledToFit()
@@ -86,7 +86,7 @@ struct GameView: View {
             }
             
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { print("List of Answers") }) {
+                Button(action: { goToLevel = true }) {
                     Image("level")
                         .resizable()
                         .scaledToFit()
@@ -96,6 +96,9 @@ struct GameView: View {
         }
         .toolbarBackground(Color.clear, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .navigationDestination(isPresented: $goToLevel) {
+            ResultView()
+        }
     }
 }
 
