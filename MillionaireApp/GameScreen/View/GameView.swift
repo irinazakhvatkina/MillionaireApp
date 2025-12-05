@@ -1,16 +1,13 @@
 import SwiftUI
 
 struct GameView: View {
-    
-    @State private var isPressed1 = false
-    @State private var isPressed2 = false
-    @State private var isPressed3 = false
-    @State private var isPressed4 = false
+
+    @State private var viewModel = QuestionModel()
+    @State private var selectedAnswer: Int? = nil
     
     var body: some View {
         ZStack {
-            Color(.blue2).ignoresSafeArea()
-            
+            GradientBackground()
             
             VStack{
                 
@@ -44,33 +41,27 @@ struct GameView: View {
                     }
                 } .padding(.bottom, 70)
                 
-                VStack(spacing: 20) {
-                    
-                    Text("What is the birthstone of the month of April?")
-                        .font(.title)
-                        .frame(maxWidth: 340, alignment: .center)
-                        .foregroundStyle(.white)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .bold()
-                        .padding(.bottom, 50)
-                    CustomButton(title: "A:   Diamond", color: isPressed1 ? .greenButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                        withAnimation(.easeInOut) {
-                            isPressed1.toggle()
-                        }
-                    }
-                    CustomButton(title: "B:   Sapphire", color: isPressed2 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                        withAnimation(.easeInOut) {
-                            isPressed2.toggle()
-                        }
-                    }
-                    CustomButton(title: "C:   Garnet", color: isPressed3 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                        withAnimation(.easeInOut) {
-                            isPressed3.toggle()
-                        }
-                    }
-                    CustomButton(title: "D:   Emerald", color: isPressed4 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                        withAnimation(.easeInOut) {
-                            isPressed4.toggle()
+                VStack(spacing: 40) {
+                    if viewModel.showResult {
+                        Text("Game Over!")
+                            .font(.largeTitle)
+                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
+                            .padding()
+                    } else {
+                        if !viewModel.questions.isEmpty {
+                            
+                            let question = viewModel.questions[viewModel.currentIndex]
+                            
+                            Text(question.question)
+                                .foregroundStyle(.white)
+                                .bold()
+                                .font(.headline)
+                                .padding(40)
+                            ForEach(0..<question.answers.count, id: \.self) { index in
+                                CustomButton(title: question.answers[index], color: selectedAnswer == index ? (index == question.correct ? .greenButton : .redButton) : .blueButton, sizeButton: CGSize(width: 340, height: 40), action: {
+                                    selectedAnswer = index
+                                })
+                               }
                         }
                     }
                 }
@@ -78,7 +69,7 @@ struct GameView: View {
                 
                 HStack (spacing: 30){
                     Button(action: {
-                     print("50:50")
+                        print("50:50")
                     }) {
                         Image(.button50)
                             .resizable()
@@ -86,7 +77,7 @@ struct GameView: View {
                             .frame(width: 90)
                     }
                     Button(action: {
-                     print("Audience")
+                        print("Audience")
                     }) {
                         Image(.buttonAudience)
                             .resizable()
@@ -94,7 +85,7 @@ struct GameView: View {
                             .frame(width: 90)
                     }
                     Button(action: {
-                     print("call")
+                        print("call")
                     }) {
                         Image(.buttonCall)
                             .resizable()
@@ -102,9 +93,10 @@ struct GameView: View {
                             .frame(width: 90)
                     }
                 }
+                
             }
-            
         }
+        
     }
 }
 
