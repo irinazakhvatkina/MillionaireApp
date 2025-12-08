@@ -12,81 +12,81 @@ struct GameView: View {
             GradientBackground()
             
             VStack(spacing: 40) {
-                Spacer().frame(height: 70)
-                
                 // MARK: - Game Over
                 if viewModel.showResult {
-                    VStack(spacing: 20) {
-                        Text("Game Over!")
-                            .font(.largeTitle)
-                            .foregroundColor(.white)
-
-                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
-                            .foregroundColor(.white)
-
-                        Button("Back to Levels") {
+                    VStack {
+                    }
+                    .onAppear() {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
                             goToLevel = true
                         }
                     }
                     .padding()
                 }
                 
+                
                 // MARK: - Question
                 else if !viewModel.questions.isEmpty {
                     let question = viewModel.questions[viewModel.currentIndex]
+                    
+                    HStack (alignment: .center, spacing: 7){
+                        Image(viewModel.timeRemaining <= 15 ? (viewModel.timeRemaining <= 7 ? "timer_stop" : "timer_half")  : "timer_start")
+                        TimerBarView(timeRemaining: $viewModel.timeRemaining, totalTime: 30, height: CGFloat(28))
+                    }
+                    .foregroundStyle(.white.opacity(0.5))
+                    .overlay(RoundedRectangle(cornerSize: CGSize(width: 20, height: 10)).stroke(viewModel.timeRemaining <= 15 ? (viewModel.timeRemaining <= 7 ? .red1.opacity(0.5) : .yellow2.opacity(0.5))  : .white.opacity(0.5), lineWidth: 35))
                     
                     Text(question.question)
                         .foregroundColor(.white)
                         .font(Fonts.headline)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: 340)
+                        .padding(20)
                     
                     // MARK: - Answers
-                    VStack(spacing: 20) {
+                    VStack(spacing: 25) {
                         ForEach(0..<question.answers.count, id: \.self) { index in
                             CustomButton(
                                 title: question.answers[index],
                                 color: selectedAnswer == index
-                                        ? (index == question.correct ? .greenButton : .redButton)
+                                ? (index == question.correct ? .greenButton : .redButton)
                                         : .blueButton,
-                                sizeButton: CGSize(width: 311, height: 30)
+                                sizeButton: CGSize(width: 340, height: 40)
                             ) {
                                 guard selectedAnswer == nil else { return }
                                 selectedAnswer = index
                                 
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                     viewModel.checkAnswer(index)
                                     selectedAnswer = nil
                                 }
                             }
                         }
                     }
+                    .padding()
+                    
+                    HStack(spacing: 30) {
+                        Button(action: { print("50:50") }) {
+                            Image("button50")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 90)
+                        }
+                        Button(action: { print("Audience") }) {
+                            Image("buttonAudience")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 90)
+                        }
+                        Button(action: { print("Call") }) {
+                            Image("buttonCall")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 90)
+                        }
+                    }
+                    .padding(.bottom, 30)
                 }
-                
-                Spacer()
-                
-                // MARK: - Lifelines
-                HStack(spacing: 30) {
-                    Button(action: { print("50:50") }) {
-                        Image("button50")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                    }
-                    Button(action: { print("Audience") }) {
-                        Image("buttonAudience")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                    }
-                    Button(action: { print("Call") }) {
-                        Image("buttonCall")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                    }
-                }
-                .padding(.bottom, 30)
             }
         }
         
@@ -109,7 +109,7 @@ struct GameView: View {
                         .opacity(0.7)
                         .font(Fonts.small)
                     
-                    Text("$500")
+                    Text("$\(viewModel.totalWinnings)")
                         .foregroundColor(.white)
                         .font(Fonts.body)
                 }
@@ -129,6 +129,11 @@ struct GameView: View {
         
         .navigationDestination(isPresented: $goToLevel) {
             ResultView()
+        }
+        .onAppear() {
+            if !viewModel.questions.isEmpty {
+                viewModel.startTimer()
+            }
         }
     }
 }
