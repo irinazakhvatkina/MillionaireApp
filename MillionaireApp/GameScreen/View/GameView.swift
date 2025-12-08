@@ -2,14 +2,9 @@ import SwiftUI
 
 struct GameView: View {
 
-    @State private var viewModel = QuestionModel()
+    @StateObject private var viewModel = QuestionModel()
     @State private var selectedAnswer: Int? = nil
     @State private var goToLevel = false
-    
-    @State private var isPressed1 = false
-    @State private var isPressed2 = false
-    @State private var isPressed3 = false
-    @State private var isPressed4 = false
     
     @Environment(\.presentationMode) var presentationMode
     
@@ -18,26 +13,48 @@ struct GameView: View {
             GradientBackground()
             
             VStack(spacing: 40) {
-                // MARK: - Question
                 Spacer().frame(height: 70)
-                Text("What is the birthstone of the month of April?")
-                    .font(Fonts.headline)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 340)
                 
-                // MARK: - Answers
-                CustomButton(title: "A: Diamond", color: isPressed1 ? .greenButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed1.toggle() }
-                }
-                CustomButton(title: "B: Sapphire", color: isPressed2 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed2.toggle() }
-                }
-                CustomButton(title: "C: Garnet", color: isPressed3 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed3.toggle() }
-                }
-                CustomButton(title: "D: Emerald", color: isPressed4 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed4.toggle() }
+                if viewModel.showResult {
+                    // MARK: - Game Over Screen
+                    VStack(spacing: 20) {
+                        Text("Game Over!")
+                            .font(.largeTitle)
+                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
+                            .padding()
+                        Button("Back to Levels") {
+                            goToLevel = true
+                        }
+//                        .buttonStyle(CustomButtonStyle(color: .blueButton))
+                    }
+                    .padding()
+                } else if !viewModel.questions.isEmpty {
+                    // MARK: - Current Question
+                    let question = viewModel.questions[viewModel.currentIndex]
+                    
+                    Text(question.question)
+                        .foregroundStyle(.white)
+                        .bold()
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    VStack(spacing: 20) {
+                        ForEach(0..<question.answers.count, id: \.self) { index in
+                            CustomButton(title: question.answers[index],
+                                         color: selectedAnswer == index ? (index == question.correct ? .greenButton : .redButton) : .blueButton,
+                                         sizeButton: CGSize(width: 340, height: 40)) {
+                                guard selectedAnswer == nil else { return }
+                                selectedAnswer = index
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    viewModel.checkAnswer(index)
+                                    selectedAnswer = nil
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 40)
                 }
                 
                 Spacer()
@@ -64,33 +81,6 @@ struct GameView: View {
                     }
                 }
                 .padding(.bottom, 30)
-                
-                // MARK: - Questions from ViewModel
-                if viewModel.showResult {
-                    VStack {
-                        Text("Game Over!")
-                            .font(.largeTitle)
-                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
-                            .padding()
-                    }
-                } else if !viewModel.questions.isEmpty {
-                    let question = viewModel.questions[viewModel.currentIndex]
-                    VStack(spacing: 20) {
-                        Text(question.question)
-                            .foregroundStyle(.white)
-                            .bold()
-                            .font(.headline)
-                            .padding(40)
-                        ForEach(0..<question.answers.count, id: \.self) { index in
-                            CustomButton(title: question.answers[index],
-                                         color: selectedAnswer == index ? (index == question.correct ? .greenButton : .redButton) : .blueButton,
-                                         sizeButton: CGSize(width: 340, height: 40)) {
-                                selectedAnswer = index
-                            }
-                        }
-                    }
-                    .padding(40)
-                }
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -106,7 +96,7 @@ struct GameView: View {
             
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 5) {
-                    Text("QUESTION #1")
+                    Text("QUESTION #\(viewModel.currentIndex + 1)")
                         .foregroundColor(.white)
                         .opacity(0.7)
                         .font(Fonts.small)

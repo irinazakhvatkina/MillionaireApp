@@ -2,11 +2,16 @@ import SwiftUI
 internal import Combine
 
 struct Question: Codable, Identifiable {
-    var id = UUID()
+    var id = UUID()   // генерируется автоматически
     var question: String
     var answers: [String]
     let correct: Int
     let difficulty: String
+    
+    // 🔥 Важный блок — игнорируем id в JSON!
+    private enum CodingKeys: String, CodingKey {
+        case question, answers, correct, difficulty
+    }
 }
 
 struct QuestionWrapper: Codable {
@@ -25,12 +30,21 @@ class QuestionModel: ObservableObject {
     }
     
     private func loadQuestions() {
-        if let url = Bundle.main.url(forResource: "questions", withExtension: "json"),
-           let data = try? Data(contentsOf: url),
-           let decoded = try? JSONDecoder().decode(QuestionWrapper.self, from: data) {
-            self.questions = decoded.questions
+        if let url = Bundle.main.url(forResource: "questions", withExtension: "json") {
+            print("Файл найден: \(url)")
+            do {
+                let data = try Data(contentsOf: url)
+                let decoded = try JSONDecoder().decode(QuestionWrapper.self, from: data)
+                self.questions = decoded.questions
+                print("Загружено вопросов: \(questions.count)")
+            } catch {
+                print("Ошибка декодирования: \(error)")
+            }
+        } else {
+            print("Файл questions.json не найден в Bundle")
         }
     }
+
     
     func checkAnswer(_ index: Int) {
         let currentQuestion = questions[currentIndex]
@@ -48,6 +62,3 @@ class QuestionModel: ObservableObject {
         }
     }
 }
-
-
-
