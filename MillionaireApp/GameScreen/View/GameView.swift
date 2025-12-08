@@ -1,11 +1,9 @@
 import SwiftUI
 
 struct GameView: View {
+    @StateObject private var viewModel = QuestionModel()
+    @State private var selectedAnswer: Int? = nil
     @State private var goToLevel = false
-    @State private var isPressed1 = false
-    @State private var isPressed2 = false
-    @State private var isPressed3 = false
-    @State private var isPressed4 = false
     
     @Environment(\.presentationMode) var presentationMode
     
@@ -14,26 +12,55 @@ struct GameView: View {
             GradientBackground()
             
             VStack(spacing: 40) {
-                // MARK: - Question
                 Spacer().frame(height: 70)
-                Text("What is the birthstone of the month of April?")
-                    .font(Fonts.headline)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 340)
                 
-                // MARK: - Answers
-                CustomButton(title: "A: Diamond", color: isPressed1 ? .greenButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed1.toggle() }
+                // MARK: - Game Over
+                if viewModel.showResult {
+                    VStack(spacing: 20) {
+                        Text("Game Over!")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+
+                        Text("Your score: \(viewModel.score) / \(viewModel.questions.count)")
+                            .foregroundColor(.white)
+
+                        Button("Back to Levels") {
+                            goToLevel = true
+                        }
+                    }
+                    .padding()
                 }
-                CustomButton(title: "B: Sapphire", color: isPressed2 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed2.toggle() }
-                }
-                CustomButton(title: "C: Garnet", color: isPressed3 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed3.toggle() }
-                }
-                CustomButton(title: "D: Emerald", color: isPressed4 ? .redButton : .blueButton, sizeButton: CGSize(width: 311, height: 30)) {
-                    withAnimation(.easeInOut) { isPressed4.toggle() }
+                
+                // MARK: - Question
+                else if !viewModel.questions.isEmpty {
+                    let question = viewModel.questions[viewModel.currentIndex]
+                    
+                    Text(question.question)
+                        .foregroundColor(.white)
+                        .font(Fonts.headline)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 340)
+                    
+                    // MARK: - Answers
+                    VStack(spacing: 20) {
+                        ForEach(0..<question.answers.count, id: \.self) { index in
+                            CustomButton(
+                                title: question.answers[index],
+                                color: selectedAnswer == index
+                                        ? (index == question.correct ? .greenButton : .redButton)
+                                        : .blueButton,
+                                sizeButton: CGSize(width: 311, height: 30)
+                            ) {
+                                guard selectedAnswer == nil else { return }
+                                selectedAnswer = index
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    viewModel.checkAnswer(index)
+                                    selectedAnswer = nil
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 Spacer()
@@ -62,6 +89,8 @@ struct GameView: View {
                 .padding(.bottom, 30)
             }
         }
+        
+        // MARK: - Toolbar
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -69,16 +98,17 @@ struct GameView: View {
                     Image("back")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 25, height: 20)
+                        .frame(width: 25)
                 }
             }
             
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 5) {
-                    Text("QUESTION #1")
+                    Text("QUESTION #\(viewModel.currentIndex + 1)")
                         .foregroundColor(.white)
                         .opacity(0.7)
                         .font(Fonts.small)
+                    
                     Text("$500")
                         .foregroundColor(.white)
                         .font(Fonts.body)
@@ -96,6 +126,7 @@ struct GameView: View {
         }
         .toolbarBackground(Color.clear, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        
         .navigationDestination(isPresented: $goToLevel) {
             ResultView()
         }
