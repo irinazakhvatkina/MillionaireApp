@@ -1,11 +1,11 @@
 import SwiftUI
 
-struct GameoverView: View {
+struct SecondView: View {
     
     @State private var goToGame = false
-    @State private var goToHome = false
-
-var body: some View {
+    @State private var showRules = false
+    
+    var body: some View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
                 GradientBackground()
@@ -17,47 +17,47 @@ var body: some View {
                         .scaledToFill()
                         .frame(width: 400, height: 400)
                     
-                    Text("Game over!")
-                        .font(Fonts.title)
+                    Text("Who Wants\n to Be a Millionaire?")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
-                        .padding(.top, -80)
+                        .padding(.top, -50)
                     
                     Text("Level 8")
                         .font(Fonts.small)
                         .foregroundColor(.white)
                         .opacity(0.7)
                         .multilineTextAlignment(.center)
-                        .padding(.top, -40)
+                        .padding(.top, 16)
                     
                     HStack(spacing: 8) {
-                        Text("$15,000")
-                            .font(Fonts.headline)
-                            .foregroundColor(.white)
-
                         Image("token")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 32, height: 32)
+                        Text("$15,000")
+                            .font(Fonts.headline)
+                            .foregroundColor(.white)
                     }
-                    .padding(.top, -20)
+                    .padding(.top, 8)
                     
-                    //  MARK: - Custom button
+                // MARK: - CustomButton
                     CustomButton(
                         title: "New game",
-                        color: .yellowButton,
-                        sizeButton: CGSize(width: 310, height: 60),
-                        action: {  goToGame = true }
-                    ).padding(.top, 140)
-                    
-                    CustomButton(
-                        title: "Main screen",
                         color: .blueButton,
                         sizeButton: CGSize(width: 310, height: 60),
-                        action: { goToHome = true }
+                        action: { goToGame = true }
                     )
+                    .padding(.top, 100)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                Button(action: { showRules = true }) {
+                    GameIcon(name: "help")
+                }
+                .padding(.top, 50)
+                .padding(.trailing, 20)
             }
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
@@ -65,13 +65,15 @@ var body: some View {
             .navigationDestination(isPresented: $goToGame) {
                 GameView()
             }
-            .navigationDestination(isPresented: $goToHome) {
-                SecondView()
+            .sheet(isPresented: $showRules) {
+                RulesView()
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
 }
 
 #Preview {
-    GameoverView()
+    SecondView()
 }
