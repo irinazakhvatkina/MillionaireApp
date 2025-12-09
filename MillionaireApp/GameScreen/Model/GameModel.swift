@@ -23,10 +23,95 @@ class QuestionModel: ObservableObject {
     @Published var currentIndex = 0
     @Published var score = 0
     @Published var showResult = false
+    
     @Published var totalWinnings: Int = 0
     @Published var guaranteedWinnings: Int = 0
     @Published var timeRemaining: Int = 30
+    
+    @Published var used5050: Bool = false
+    @Published var usedAudience: Bool = false
+    @Published var usedPhone: Bool = false
+    
+    @Published var removedAnswerIndices: Set<Int> = []
+    
+    func use5050() -> Set<Int> {
+        guard !used5050, currentIndex < questions.count else { return  [] }
+        used5050 = true
+        removedAnswerIndices.removeAll()
         
+        let correct = questions[currentIndex].correct
+        let allIndices = Array(0..<questions[currentIndex].answers.count)
+        let wrongIndices = allIndices.filter { $0 != correct }
+        let toRemove = Array(wrongIndices.shuffled().prefix(min(2, wrongIndices.count)))
+        
+        removedAnswerIndices = Set(toRemove)
+        return  removedAnswerIndices
+    }
+    
+    func askAudience() -> [Int] {
+        guard !usedAudience, currentIndex < questions.count else { return [] }
+        usedAudience = true
+        
+        let correct = questions[currentIndex].correct
+        let count = questions[currentIndex].answers.count
+        
+        let baseCorrectWeight = 51
+        let remaining = 100 - baseCorrectWeight
+        var weights = Array(repeating: 0, count: count)
+        weights[correct] = baseCorrectWeight
+        
+        let wrongIndices = (0..<count).filter { $0 != correct }
+        var remainingWeights = remaining
+        for i in 0..<wrongIndices.count {
+            if i == wrongIndices.count - 1 {
+                weights[wrongIndices[i]] = remainingWeights
+            } else {
+                let share = Int.random(in: 0...remainingWeights)
+                weights[wrongIndices[i]] = share
+                remainingWeights -= share
+            }
+        }
+        let sum = weights.reduce(0, +)
+        if sum != 100 {
+            let diff = 100 - sum
+            weights[correct] += diff
+        }
+        
+        return weights
+    }
+    func phoneAFriend() -> (suggestion: Int, confidence: Int)? {
+        guard !usedPhone, currentIndex < questions.count else { return nil }
+        usedPhone = true
+
+        let correct = questions[currentIndex].correct
+        let count = questions[currentIndex].answers.count
+
+        // Friend accuracy depends on difficulty (if you have it)
+        let difficulty = questions[currentIndex].difficulty.lowercased()
+        let baseAccuracy: Int
+        switch difficulty {
+        case "easy": baseAccuracy = 85
+        case "medium": baseAccuracy = 65
+        case "hard": baseAccuracy = 45
+        default: baseAccuracy = 60
+        }
+
+        let roll = Int.random(in: 1...100)
+        if roll <= baseAccuracy {
+            // friend picks correct
+            let confidence = Int.random(in: max(60, baseAccuracy-10)...min(95, baseAccuracy+10))
+            return (correct, confidence)
+        } else {
+            // friend picks a wrong answer
+            let wrongIndices = (0..<count).filter { $0 != correct }
+            guard let pick = wrongIndices.randomElement() else { return (correct, 50) }
+            let confidence = Int.random(in: 30...70)
+            return (pick, confidence)
+        }
+    }
+
+
+
     
     private var timerCancellable: AnyCancellable?
     let prizeLevels: [Int] = [ 500, 1_000, 2_000, 3_000, 5_000,
