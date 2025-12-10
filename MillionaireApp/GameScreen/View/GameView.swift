@@ -20,8 +20,7 @@ struct GameView: View {
             GradientBackground()
             
             VStack(spacing: 40) {
-                
-                // MARK: - Game Over (через модель)
+                // MARK: - Game Over
                 if viewModel.showResult {
                     VStack {}
                         .onAppear {
@@ -39,7 +38,7 @@ struct GameView: View {
                     // MARK: Timer UI
                     HStack(alignment: .center, spacing: 7) {
                         Image(viewModel.timeRemaining <= 15 ? (viewModel.timeRemaining <= 7 ? "timer_stop" : "timer_half") : "timer_start")
-                        TimerBarView(timeRemaining: $viewModel.timeRemaining, totalTime: 30, height: 28)
+                        TimeBarView(timeRemaining: $viewModel.timeRemaining, totalTime: 30, height: 28)
                     }
                     .foregroundStyle(.white.opacity(0.5))
                     .overlay(
@@ -60,13 +59,13 @@ struct GameView: View {
                         .frame(maxWidth: 340)
                         .padding(20)
                     
-                    // MARK: - Answers (версия develop)
+                    // MARK: Answers
                     AnswersView(viewModel: viewModel,
                                 selectedAnswer: $selectedAnswer,
                                 question: question)
                         .padding()
                     
-                    // MARK: - Help Buttons
+                    // MARK: Help Buttons
                     HelpButtonsView(
                         viewModel: viewModel,
                         showAudienceResults: $showAudienceResults,
@@ -77,7 +76,6 @@ struct GameView: View {
                 }
             }
         }
-        
         // MARK: Sheets
         .sheet(isPresented: $showAudienceResults) {
             AudienceSheet(
@@ -97,8 +95,6 @@ struct GameView: View {
         // MARK: Navigation
         .navigationBarBackButtonHidden(true)
         .toolbar {
-            
-            // BACK
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     gameVM.saveGame(questionModel: viewModel)
@@ -111,7 +107,6 @@ struct GameView: View {
                 }
             }
             
-            // TITLE
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 5) {
                     Text("QUESTION #\(viewModel.currentIndex + 1)")
@@ -124,7 +119,6 @@ struct GameView: View {
                 }
             }
             
-            // LEVEL BUTTON
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button { goToLevel = true } label: {
                     Image("level")
@@ -138,13 +132,23 @@ struct GameView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         
         // MARK: Destinations
-        .navigationDestination(isPresented: $goToLevel) {
+        NavigationLink(destination:
             ResultView()
                 .environmentObject(viewModel)
+                .environmentObject(gameVM),
+            isActive: $goToLevel
+        ) {
+            EmptyView()
         }
-        .navigationDestination(isPresented: $finishGame) {
+
+        NavigationLink(destination:
             GameoverView()
+                .environmentObject(gameVM),
+            isActive: $finishGame
+        ) {
+            EmptyView()
         }
+
         
         // MARK: Lifecycle
         .onAppear {
@@ -155,7 +159,6 @@ struct GameView: View {
                 viewModel.startTimer()
             }
         }
-        
         .onChange(of: viewModel.currentIndex) { _, _ in
             viewModel.removedAnswerIndices.removeAll()
             viewModel.startTimer()
@@ -163,9 +166,12 @@ struct GameView: View {
     }
 }
 
+// MARK: Preview
 #Preview {
+    let gameVM = GameViewModel()
     NavigationStack {
-        GameoverView()
-            .environmentObject(GameViewModel())
+        GameView()
+            .environmentObject(gameVM)
     }
 }
+

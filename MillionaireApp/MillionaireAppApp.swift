@@ -11,7 +11,7 @@ struct MillionaireApp: App {
                     HomeView()
                         .environmentObject(gameVM)
                 } else {
-                    SecondView()
+                    GameView()
                         .environmentObject(gameVM)
                 }
             }

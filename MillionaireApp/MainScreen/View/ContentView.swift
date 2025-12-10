@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject var gameVM: GameViewModel
     @State private var showRules = false
     @State private var goToGame = false
     
@@ -9,8 +10,8 @@ struct HomeView: View {
             ZStack(alignment: .topTrailing) {
                 GradientBackground()
                 
-                // MARK: - Rulse
-                Button(action: { showRules = true}) {
+                // MARK: - Rules Button
+                Button(action: { showRules = true }) {
                     GameIcon(name: "help")
                         .padding(.top, 50)
                         .padding(.trailing, 20)
@@ -30,8 +31,7 @@ struct HomeView: View {
                         .multilineTextAlignment(.center)
                         .padding(.top, -80)
                     
-                    
-                //  MARK: - Custom button
+                    // MARK: - New Game Button
                     CustomButton(
                         title: "New game",
                         color: .yellowButton,
@@ -39,22 +39,28 @@ struct HomeView: View {
                         action: {
                             goToGame = true
                         }
-                    ).padding(.top, 140)
+                    )
+                    .padding(.top, 140)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // MARK: - NavigationLink must be inside ZStack/NavigationStack
+                NavigationLink(
+                    destination: GameView()
+                        .environmentObject(gameVM),
+                    isActive: $goToGame
+                ) {
+                    EmptyView()
+                }
             }
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
             .ignoresSafeArea()
-            
-            // MARK: - Sheet for Rules
+            // MARK: - Rules Sheet
             .sheet(isPresented: $showRules) {
                 RulesView()
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
-            }
-            .navigationDestination(isPresented: $goToGame) {
-                GameView()
             }
         }
     }
@@ -62,4 +68,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+        .environmentObject(GameViewModel())
 }
