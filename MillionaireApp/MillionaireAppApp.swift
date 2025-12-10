@@ -1,10 +1,15 @@
 import SwiftUI
 
 @main
-struct MillionaireAppApp: App {
+struct MillionaireApp: App {
+    @StateObject private var gameVM = GameViewModel() 
+
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            NavigationStack {
+                SecondView()
+                    .environmentObject(gameVM)
+            }
         }
     }
 }
