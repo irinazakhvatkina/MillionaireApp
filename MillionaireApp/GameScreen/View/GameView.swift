@@ -21,19 +21,16 @@ struct GameView: View {
             
             VStack(spacing: 40) {
                 // MARK: - Game Over
-                if viewModel.showResult {
-                    VStack {}
-                        .onAppear {
-                            DispatchQueue.main.async {
-                                goToLevel = true
+                // MARK: - Game Over
+                            if viewModel.showResult {
+                                // Если showResult true, показываем Game Over
+                                GameoverView()
+                                    .environmentObject(gameVM)
                             }
-                        }
-                        .padding()
-                }
-                
-                // MARK: - Active Question
-                else if !viewModel.questions.isEmpty {
-                    let question = viewModel.questions[viewModel.currentIndex]
+                            else if !viewModel.questions.isEmpty {
+                                // Если вопросы есть, показываем активный вопрос
+                                let question = viewModel.questions[viewModel.currentIndex]
+
                     
                     // MARK: Timer UI
                     HStack(alignment: .center, spacing: 7) {
@@ -74,7 +71,6 @@ struct GameView: View {
                         phoneSuggestion: $phoneSuggestion
                     )
                 }
-            }
         }
         // MARK: Sheets
         .sheet(isPresented: $showAudienceResults) {
@@ -165,13 +161,5 @@ struct GameView: View {
         }
     }
 }
-
-// MARK: Preview
-#Preview {
-    let gameVM = GameViewModel()
-    NavigationStack {
-        GameView()
-            .environmentObject(gameVM)
-    }
 }
 
