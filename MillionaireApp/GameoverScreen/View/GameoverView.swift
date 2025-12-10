@@ -57,7 +57,6 @@ struct GameoverView: View {
                     color: .blueButton,
                     sizeButton: CGSize(width: 310, height: 60),
                     action: {
-                        gameVM.resetGame()
                         goToHome = true
                     }
                 )

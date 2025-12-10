@@ -78,10 +78,15 @@ struct GameView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                Button(action: {
+                    // Сохраняем игру перед выходом с передачей viewModel
+                    gameVM.saveGame(questionModel: viewModel)
+                    presentationMode.wrappedValue.dismiss()
+                }) {
                     Image("back").resizable().scaledToFit().frame(width: 25)
                 }
             }
+
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 5) {
                     Text("QUESTION #\(viewModel.currentIndex + 1)")
@@ -105,7 +110,14 @@ struct GameView: View {
             ResultView()
         }
         .onAppear {
-            if !viewModel.questions.isEmpty { viewModel.startTimer() }
+            if gameVM.hasPausedGame && !viewModel.questions.isEmpty {
+                // Если есть сохраненная игра, восстанавливаем ее
+                gameVM.resumeGame(questionModel: viewModel)
+            }
+            
+            if !viewModel.questions.isEmpty {
+                viewModel.startTimer()
+            }
         }
         .onChange(of: viewModel.currentIndex) { newValue, _ in
             viewModel.removedAnswerIndices.removeAll()
@@ -113,8 +125,6 @@ struct GameView: View {
         }
     }
 }
-
-
 #Preview {
     NavigationStack {
         GameoverView()

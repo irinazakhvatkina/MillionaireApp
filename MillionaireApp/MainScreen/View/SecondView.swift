@@ -4,6 +4,7 @@ struct SecondView: View {
     @EnvironmentObject var gameVM: GameViewModel
     @State private var goToGame = false
     @State private var showRules = false
+    @State private var showResumeAlert = false
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -34,22 +35,65 @@ struct SecondView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 32, height: 32)
-                    Text("$\(gameVM.totalWinnings.formatted(.number.grouping(.automatic)))")
-                        .font(Fonts.headline)
-                        .foregroundColor(.white)
+                    
+                    // Показываем сохраненные выигрыши если есть сохраненная игра
+                    if gameVM.hasPausedGame {
+                        let savedWinnings = UserDefaults.standard.integer(forKey: "totalWinnings")
+                        Text("$\(savedWinnings.formatted(.number.grouping(.automatic)))")
+                            .font(Fonts.headline)
+                            .foregroundColor(.white)
+                    } else {
+                        Text("$\(gameVM.totalWinnings.formatted(.number.grouping(.automatic)))")
+                            .font(Fonts.headline)
+                            .foregroundColor(.white)
+                    }
                 }
                 .padding(.top, 8)
                 
-                CustomButton(
-                    title: "New game",
-                    color: .blueButton,
-                    sizeButton: CGSize(width: 310, height: 60),
-                    action: {
-                        gameVM.startNewGame()
-                        goToGame = true
+                if gameVM.hasPausedGame {
+                    VStack(spacing: 20) {
+                        CustomButton(
+                            title: "Continue game",
+                            color: .yellowButton,
+                            sizeButton: CGSize(width: 310, height: 60),
+                            action: {
+                                gameVM.resumeGame()
+                                goToGame = true
+                            }
+                        )
+                        
+                        CustomButton(
+                            title: "New game",
+                            color: .blueButton,
+                            sizeButton: CGSize(width: 310, height: 60),
+                            action: {
+                                // Показываем подтверждение перед началом новой игры
+                                showResumeAlert = true
+                            }
+                        )
+                        .alert("Start New Game", isPresented: $showResumeAlert) {
+                            Button("Cancel", role: .cancel) { }
+                            Button("Yes, Start New", role: .destructive) {
+                                gameVM.startNewGame()
+                                goToGame = true
+                            }
+                        } message: {
+                            Text("Starting a new game will erase your current progress. Are you sure?")
+                        }
                     }
-                )
-                .padding(.top, 100)
+                    .padding(.top, 100)
+                } else {
+                    CustomButton(
+                        title: "New game",
+                        color: .blueButton,
+                        sizeButton: CGSize(width: 310, height: 60),
+                        action: {
+                            gameVM.startNewGame()
+                            goToGame = true
+                        }
+                    )
+                    .padding(.top, 100)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -77,6 +121,10 @@ struct SecondView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+        .onAppear {
+            // Обновляем UI при появлении
+            print("Есть сохраненная игра: \(gameVM.hasPausedGame)")
+        }
     }
 }
 
@@ -85,4 +133,4 @@ struct SecondView: View {
         SecondView()
             .environmentObject(GameViewModel())
     }
-}
+} 
