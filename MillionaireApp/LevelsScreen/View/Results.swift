@@ -7,7 +7,7 @@ struct ResultView: View {
         let colors: [ButtonColor] = [.blueButton, .yellowButton, .greenButton, .redButton]
         return (i, prize, colors[i % colors.count])
     }
-
+    @EnvironmentObject var gameVM: GameViewModel
     var onWithdraw: ((String) -> Void)?
 
     @State private var goNext = false
@@ -70,7 +70,8 @@ struct ResultView: View {
             }
         }
         .navigationDestination(isPresented: $goNext) {
-            GameoverView() 
+            GameoverView()
+                .environmentObject(GameViewModel()) 
         }
     }
 
@@ -84,5 +85,6 @@ struct ResultView: View {
 #Preview {
     NavigationStack {
         ResultView()
+            .environmentObject(GameViewModel())
     }
 }
