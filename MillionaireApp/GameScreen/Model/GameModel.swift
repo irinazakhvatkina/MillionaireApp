@@ -1,5 +1,5 @@
 import SwiftUI
-internal import Combine
+import Combine
 
 // MARK: - Models
 
@@ -40,6 +40,10 @@ class QuestionModel: ObservableObject {
     @Published var usedPhone: Bool = false
     @Published var removedAnswerIndices: Set<Int> = []
     
+    // from diana/LevelsAppeared
+    @Published var lastCompletedLevel: Int? = nil
+
+    // from develop
     @Published var bestPrize: Int = UserDefaults.standard.integer(forKey: "bestPrize") {
         didSet { UserDefaults.standard.set(bestPrize, forKey: "bestPrize") }
     }
@@ -94,6 +98,9 @@ class QuestionModel: ObservableObject {
             awardPrizeForCurrentQuestion()
             updateGuaranteedIfNeeded()
             updateBestPrize()
+            
+            lastCompletedLevel = currentIndex + 1
+            
             nextQuestion()
         } else {
             totalWinnings = max(totalWinnings, guaranteedWinnings)
@@ -130,6 +137,10 @@ class QuestionModel: ObservableObject {
         }
     }
     
+    func advanceAfterResult() {
+        lastCompletedLevel = nil
+    }
+    
     
     // MARK: Navigation Logic
     private func nextQuestion() {
@@ -141,6 +152,7 @@ class QuestionModel: ObservableObject {
             finishGame()
         }
     }
+    
     
     private func finishGame() {
         stopTimer()
@@ -175,8 +187,7 @@ class QuestionModel: ObservableObject {
     
     // MARK: Lifelines
     func use5050() -> Set<Int> {
-        guard !used5050,
-              currentIndex < questions.count else { return [] }
+        guard !used5050, currentIndex < questions.count else { return [] }
         
         used5050 = true
         removedAnswerIndices.removeAll()
@@ -190,8 +201,7 @@ class QuestionModel: ObservableObject {
     
     
     func askAudience() -> [Int] {
-        guard !usedAudience,
-              currentIndex < questions.count else { return [] }
+        guard !usedAudience, currentIndex < questions.count else { return [] }
         
         usedAudience = true
         
@@ -218,8 +228,7 @@ class QuestionModel: ObservableObject {
     
     
     func phoneAFriend() -> (suggestion: Int, confidence: Int)? {
-        guard !usedPhone,
-              currentIndex < questions.count else { return nil }
+        guard !usedPhone, currentIndex < questions.count else { return nil }
         
         usedPhone = true
         
@@ -255,21 +264,5 @@ class QuestionModel: ObservableObject {
         usedPhone = false
         removedAnswerIndices.removeAll()
         startTimer()
-    }
-}
-
-
-// MARK: - Timer UI
-
-struct TimerBarView: View {
-    @Binding var timeRemaining: Int
-    let totalTime: Int
-    let height: CGFloat
-    
-    var body: some View {
-        Text("\(timeRemaining)")
-            .font(.system(size: height * 0.9, weight: .bold))
-            .foregroundColor(timeRemaining <= 7 ? .red1 :
-                             timeRemaining <= 15 ? .yellow2 : .white)
     }
 }
