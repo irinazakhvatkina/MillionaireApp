@@ -4,6 +4,8 @@ struct GameView: View {
     @StateObject private var viewModel = QuestionModel()
     @State private var selectedAnswer: Int? = nil
     @State private var goToLevel = false
+    @State private var finishGame = false
+    
     
     @State private var showAudienceResults: Bool = false
     @State private var audiencePercentages: [Int] = []
@@ -23,7 +25,7 @@ struct GameView: View {
                     }
                     .onAppear() {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
-                            goToLevel = true
+                            finishGame = true
                         }
                     }
                     .padding()
@@ -51,22 +53,39 @@ struct GameView: View {
                         ForEach(0..<question.answers.count, id: \.self) { index in
                             
                             let isRemoved = viewModel.removedAnswerIndices.contains(index)
-                                CustomButton(
-                                    title: isRemoved ? "" : question.answers[index],
-                                    color: selectedAnswer == index
-                                    ? (index == question.correct ? .greenButton : .redButton)
-                                    : .blueButton,
-                                    sizeButton: CGSize(width: 340, height: 40)
-                                ) {
-                                    guard selectedAnswer == nil else { return }
-                                    selectedAnswer = index
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            CustomButton(
+                                title: isRemoved ? "" : question.answers[index],
+                                color: selectedAnswer == index
+                                ? (index == question.correct ? .greenButton : .redButton)
+                                : .blueButton,
+                                sizeButton: CGSize(width: 340, height: 40)
+                            ) {
+                                guard selectedAnswer == nil else { return }
+                                selectedAnswer = index
+                                
+                                
+                                if index == question.correct {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                        viewModel.stopTimer()
                                         viewModel.checkAnswer(index)
-                                        selectedAnswer = nil
+                                        withAnimation(.spring(response: 1.25, dampingFraction: 0.7)) {
+                                            goToLevel = true
+                                        }
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                            withAnimation(.easeInOut(duration: 1.25)) {
+                                                selectedAnswer = nil
+                                            }}
                                     }
+                                } else {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                            finishGame = true
+                                            selectedAnswer = nil
+                                        }
+                                    }
+//                                    
                                 }
-                                .disabled(selectedAnswer != nil || isRemoved)
+                                    .disabled(selectedAnswer != nil || isRemoved)
                             }
                         
                     }
@@ -231,6 +250,13 @@ struct GameView: View {
         
         .navigationDestination(isPresented: $goToLevel) {
             ResultView()
+                .environmentObject(viewModel)
+            
+        }
+        
+        .navigationDestination(isPresented: $finishGame) {
+            GameoverView()
+            
         }
         .onAppear() {
             if !viewModel.questions.isEmpty {

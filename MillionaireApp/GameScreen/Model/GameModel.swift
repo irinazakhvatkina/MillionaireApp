@@ -34,6 +34,8 @@ class QuestionModel: ObservableObject {
     
     @Published var removedAnswerIndices: Set<Int> = []
     
+    @Published var lastCompletedLevel: Int? = nil
+    
     func use5050() -> Set<Int> {
         guard !used5050, currentIndex < questions.count else { return  [] }
         used5050 = true
@@ -85,8 +87,6 @@ class QuestionModel: ObservableObject {
 
         let correct = questions[currentIndex].correct
         let count = questions[currentIndex].answers.count
-
-        // Friend accuracy depends on difficulty (if you have it)
         let difficulty = questions[currentIndex].difficulty.lowercased()
         let baseAccuracy: Int
         switch difficulty {
@@ -98,11 +98,9 @@ class QuestionModel: ObservableObject {
 
         let roll = Int.random(in: 1...100)
         if roll <= baseAccuracy {
-            // friend picks correct
             let confidence = Int.random(in: max(60, baseAccuracy-10)...min(95, baseAccuracy+10))
             return (correct, confidence)
         } else {
-            // friend picks a wrong answer
             let wrongIndices = (0..<count).filter { $0 != correct }
             guard let pick = wrongIndices.randomElement() else { return (correct, 50) }
             let confidence = Int.random(in: 30...70)
@@ -152,6 +150,7 @@ class QuestionModel: ObservableObject {
             awardPrizeForCurrentQuestion()
             updateGuaranteedIfNeeded()
             nextQuestion()
+            lastCompletedLevel = currentIndex + 1
         } else {
             totalWinnings = max(totalWinnings, guaranteedWinnings)
             finishGame()
@@ -160,7 +159,6 @@ class QuestionModel: ObservableObject {
     
     func nextQuestion() {
         if currentIndex + 1 < questions.count {
-            currentIndex += 1
             startTimer()
         } else {
             finishGame()
@@ -181,6 +179,18 @@ class QuestionModel: ObservableObject {
         let i = min(index, prizeLevels.count - 1)
         return prizeLevels[i]
     }
+    
+    func advanceAfterResult() {
+        lastCompletedLevel = nil
+        if currentIndex + 1 < questions.count {
+            currentIndex += 1
+            removedAnswerIndices.removeAll()
+            startTimer()
+        } else {
+            finishGame()
+        }
+    }
+    
     
     
     private func finishGame() {
